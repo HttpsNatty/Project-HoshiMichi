@@ -141,6 +141,9 @@
             <button class="tab-btn" onclick="mudarCategoria('perguntas', this)">
                 ❓ Perguntas
             </button>
+            <button class="tab-btn" onclick="mudarCategoria('descanso', this)">
+                ☕ Descanso
+            </button>
         </div>
 
         <div class="card" id="card">Clique para revelar</div>
@@ -154,7 +157,8 @@
         // URLs
         const urls = {
             vocabulário: "https://docs.google.com/spreadsheets/d/e/2PACX-1vTB0TRTvlkkQYdEXeYsQrExfJTBItnnxDSk_MKunRKOck_F6Zlr68SatfP_8s_AeQ6IHPsLJ6d3xxrG/pub?gid=0&single=true&output=tsv",
-            perguntas: "https://docs.google.com/spreadsheets/d/e/2PACX-1vTB0TRTvlkkQYdEXeYsQrExfJTBItnnxDSk_MKunRKOck_F6Zlr68SatfP_8s_AeQ6IHPsLJ6d3xxrG/pub?gid=1456289432&single=true&output=tsv"
+            perguntas: "https://docs.google.com/spreadsheets/d/e/2PACX-1vTB0TRTvlkkQYdEXeYsQrExfJTBItnnxDSk_MKunRKOck_F6Zlr68SatfP_8s_AeQ6IHPsLJ6d3xxrG/pub?gid=1456289432&single=true&output=tsv",
+            descanso: "https://docs.google.com/spreadsheets/d/e/2PACX-1vTB0TRTvlkkQYdEXeYsQrExfJTBItnnxDSk_MKunRKOck_F6Zlr68SatfP_8s_AeQ6IHPsLJ6d3xxrG/pub?gid=578594546&single=true&output=tsv"
         };
 
         // Dados carregados
@@ -186,6 +190,11 @@
             const text = await res.text();
 
             data = text.trim().split("\n").map(linha => linha.split("\t"));
+
+            // Embaralhar se não for 'descanso'
+            if (categoria !== 'descanso') {
+                shuffleArray(data);
+            }
             index = 0;
             showingBack = 0;
 
@@ -257,8 +266,10 @@
         }
         createStars();
 
-        // Carregar a primeira categoria automaticamente
-        loadCategory(); </script>
+        // Carregar a primeira categoria como padrão
+        loadCategory();
+
+    </script>
 </body>
 
 </html>
