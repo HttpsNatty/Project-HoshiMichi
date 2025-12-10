@@ -1,133 +1,211 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Flashcards de Katakana</title>
-  <style>
-    body {
-      font-family: 'Segoe UI', sans-serif;
-      background: radial-gradient(circle at 20% 30%, #1b1f3b, #0a0c1a 70%);
-      margin: 0;
-      padding: 40px 20px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      color: #fff;
-      overflow-x: hidden;
-    }
+    <meta charset="UTF-8">
+    <title>Flashcards Japonês</title>
+    <link rel="icon"
+        href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='0.9em' font-size='90'>🌙</text></svg>">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: "Segoe UI", sans-serif;
+            background: #0a0f24;
+            overflow: hidden;
+            color: white;
+            text-align: center;
+        }
 
-    /* estrelas */
-    body::before {
-      content: "";
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: url('https://raw.githubusercontent.com/itsnatalias/chatgpt-stars/main/stars.png');
-      opacity: 0.35;
-      z-index: -1;
-      animation: twinkle 6s infinite alternate;
-    }
+        /* Fundo de estrelas */
+        .stars {
+            width: 2px;
+            height: 2px;
+            background: white;
+            position: absolute;
+            animation: twinkle 2s infinite ease-in-out;
+            opacity: 0.8;
+        }
 
-    @keyframes twinkle {
-      from { opacity: .25; }
-      to { opacity: .45; }
-    }
+        @keyframes twinkle {
+            0% {
+                opacity: 0.3;
+            }
 
-    h1 {
-      margin-bottom: 25px;
-      font-size: 32px;
-      text-shadow: 0 2px 6px rgba(0,0,0,0.6);
-    }
+            50% {
+                opacity: 1;
+            }
 
-    #flashcard {
-      background: rgba(255,255,255,0.08);
-      backdrop-filter: blur(10px);
-      width: 340px;
-      padding: 40px 25px;
-      border-radius: 20px;
-      border: 1px solid rgba(255,255,255,0.15);
-      box-shadow: 0 10px 30px rgba(0,0,0,0.4);
-      text-align: center;
-      font-size: 32px;
-      cursor: pointer;
-      user-select: none;
-      transition: transform .25s ease, box-shadow .25s ease;
-      color: #fff;
-    }
-    #flashcard:hover {
-      transform: scale(1.04);
-      box-shadow: 0 14px 32px rgba(0,0,0,0.55);
-    }
+            100% {
+                opacity: 0.3;
+            }
+        }
 
-    button {
-      margin-top: 25px;
-      padding: 12px 28px;
-      font-size: 18px;
-      border: none;
-      border-radius: 12px;
-      cursor: pointer;
-      background: linear-gradient(135deg, #6d5dfc, #a86dfc);
-      color: #fff;
-      font-weight: bold;
-      box-shadow: 0 5px 12px rgba(0,0,0,0.4);
-      transition: .25s;
-    }
-    button:hover {
-      transform: scale(1.06);
-      box-shadow: 0 8px 15px rgba(0,0,0,0.45);
-    }
-  </style>
+        /* Container */
+        .container {
+            position: relative;
+            z-index: 100;
+            margin-top: 40px;
+        }
+
+        /* Card */
+        .card {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 40px;
+            border-radius: 20px;
+            backdrop-filter: blur(8px);
+            width: 320px;
+            margin: auto;
+            font-size: 1.5rem;
+            min-height: 150px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: 0.3s;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .card:hover {
+            background: rgba(255, 255, 255, 0.18);
+        }
+
+        /* Botões */
+        button {
+            background: #1e2d5a;
+            border: none;
+            padding: 10px 20px;
+            margin: 15px;
+            border-radius: 10px;
+            cursor: pointer;
+            color: white;
+            font-size: 1rem;
+            transition: 0.2s;
+        }
+
+        button:hover {
+            background: #2d47a1;
+        }
+
+        select {
+            padding: 10px;
+            border-radius: 10px;
+            margin: 10px;
+            background: #11182f;
+            color: white;
+            border: 1px solid #4556a1;
+        }
+    </style>
 </head>
+
 <body>
-  <h1>Flashcards de Katakana</h1>
-  <div id="flashcard">Carregando...</div>
-  <button id="nextBtn">Próximo</button>
+    <div id="starfield"></div>
+    <div class="container">
+        <h1>🌙 Flashcards de Japonês</h1> <select id="categoria">
+            <option value="vocabulário">Vocabulário</option>
+        </select>
+        <div class="card" id="card">Clique para revelar</div> <button onclick="anterior()">⬅️ Anterior</button> <button
+            onclick="proximo()">➡️ Próximo</button>
+    </div>
+    <script>
+        // URLs
+        const urls = {
+            vocabulário: "https://docs.google.com/spreadsheets/d/e/2PACX-1vTB0TRTvlkkQYdEXeYsQrExfJTBItnnxDSk_MKunRKOck_F6Zlr68SatfP_8s_AeQ6IHPsLJ6d3xxrG/pub?gid=0&single=true&output=tsv"
+        };
 
-  <script>
-    const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTB0TRTvlkkQYdEXeYsQrExfJTBItnnxDSk_MKunRKOck_F6Zlr68SatfP_8s_AeQ6IHPsLJ6d3xxrG/pub?gid=0&single=true&output=tsv";
+        // Dados carregados
+        let data = [];
+        let index = 0;
+        let showingBack = 0;
 
-    let words = [];
-    let current = {};
-    let showing = "katakana";
+        // Carregar categoria
+        document.getElementById("categoria").addEventListener("change", loadCategory);
 
-    async function loadSheet() {
-      const res = await fetch(sheetUrl);
-      const text = await res.text();
-      const lines = text.trim().split("\n");
+        // Função para carregar TSV
+        async function loadCategory() {
+            const categoria = document.getElementById("categoria").value;
+            const url = urls[categoria];
 
-      words = lines.map(l => {
-        const [katakana, romaji, pt] = l.split("\t");
-        return { katakana, romaji, pt };
-      });
+            const res = await fetch(url);
+            const text = await res.text();
 
-      newCard();
-    }
+            data = text.trim().split("\n").map(linha => linha.split("\t"));
+            index = 0;
+            showingBack = 0;
 
-    function newCard() {
-      current = words[Math.floor(Math.random() * words.length)];
-      showing = "katakana";
-      flashcard.textContent = current.katakana;
-    }
+            mostrarCard();
+        }
 
-    flashcard.addEventListener("click", () => {
-      if (showing === "katakana") {
-        flashcard.textContent = current.romaji;
-        showing = "romaji";
-      } else if (showing === "romaji") {
-        flashcard.textContent = current.pt;
-        showing = "pt";
-      } else {
-        flashcard.textContent = current.katakana;
-        showing = "katakana";
-      }
-    });
+        // Mostrar card
+        function mostrarCard() {
+            if (!data.length) return;
 
-    nextBtn.addEventListener("click", newCard);
+            const card = document.getElementById("card");
+            const categoria = document.getElementById("categoria").value;
+            const [jp, romaji, resposta] = data[index];
 
-    loadSheet();
-  </script>
+            if (categoria === "vocabulário") {
+                if (showingBack === 0) {
+                    card.innerHTML = `<b>${jp}</b>`;
+                }
+                else if (showingBack === 1) {
+                    card.innerHTML = `<b>${romaji}</b>`;
+                }
+                else if (showingBack === 2) {
+                    card.innerHTML = `<b>${resposta}</b>`;
+                }
+            }
+            else {
+                card.innerHTML = showingBack === 0
+                    ? `<b>${jp}</b><br><small>${romaji}</small>`
+                    : `<b>${resposta}</b>`;
+            }
+        }
+
+        // Clique para alternar
+        document.getElementById("card").addEventListener("click", () => {
+            const categoria = document.getElementById("categoria").value;
+
+            if (categoria === "vocabulário") {
+                showingBack = (showingBack + 1) % 3;
+            } else {
+                showingBack = showingBack === 0 ? 1 : 0;
+            }
+            mostrarCard();
+        });
+
+        // Próximo
+        function proximo() {
+            index = (index + 1) % data.length;
+            showingBack = 0;
+            mostrarCard();
+        }
+
+        // Anterior
+        function anterior() {
+            index = (index - 1 + data.length) % data.length;
+            showingBack = 0;
+            mostrarCard();
+        }
+
+
+        // Criar estrelas 
+        function createStars() {
+            for (let i = 0; i < 150; i++) {
+                let star = document.createElement("div");
+                star.classList.add("stars");
+                star.style.left = Math.random() * 100 + "vw";
+                star.style.top = Math.random() * 100 + "vh";
+                star.style.animationDuration = (Math.random() * 2 + 1) + "s";
+                document.body.appendChild(star);
+            }
+        }
+
+        createStars();
+
+        // Carregar a primeira categoria automaticamente
+        loadCategory(); 
+    </script>
 </body>
+
 </html>
