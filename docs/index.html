@@ -17,7 +17,6 @@
             text-align: center;
         }
 
-        /* Fundo de estrelas */
         .stars {
             width: 2px;
             height: 2px;
@@ -41,14 +40,12 @@
             }
         }
 
-        /* Container */
         .container {
             position: relative;
             z-index: 100;
             margin-top: 40px;
         }
 
-        /* Card */
         .card {
             background: rgba(255, 255, 255, 0.1);
             padding: 40px;
@@ -70,7 +67,6 @@
             background: rgba(255, 255, 255, 0.18);
         }
 
-        /* Botões */
         button {
             background: #1e2d5a;
             border: none;
@@ -87,7 +83,6 @@
             background: #2d47a1;
         }
 
-        /* Tabs */
         .tab-container {
             display: flex;
             justify-content: center;
@@ -104,11 +99,7 @@
             cursor: pointer;
             color: #b0b8d4;
             font-size: 1.1rem;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin: 0;
+            transition: 0.3s;
         }
 
         .tab-btn:hover {
@@ -124,6 +115,33 @@
             box-shadow: 0 0 20px rgba(69, 86, 161, 0.6);
             transform: scale(1.05);
         }
+
+        .options-container {
+            display: none;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 20px;
+            color: #b0b8d4;
+            font-size: 1.1rem;
+        }
+
+        .options-container.visible {
+            display: flex;
+        }
+
+        .options-container label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+        }
+
+        .options-container input[type="checkbox"] {
+            accent-color: #4556a1;
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
     </style>
 </head>
 
@@ -132,18 +150,19 @@
     <div id="starfield"></div>
 
     <div class="container">
-        <h1>🌙 MoonKata - Flashcards de Japonês</h1>
+        <h1>🌙 MoonKata • Flashcards de Japonês</h1>
 
         <div class="tab-container">
-            <button class="tab-btn active" onclick="mudarCategoria('vocabulário', this)">
-                📖 Vocabulário
-            </button>
-            <button class="tab-btn" onclick="mudarCategoria('perguntas', this)">
-                ❓ Perguntas
-            </button>
-            <button class="tab-btn" onclick="mudarCategoria('descanso', this)">
-                ☕ Descanso
-            </button>
+            <button class="tab-btn active" onclick="mudarCategoria('letras', this)">📖 Letras</button>
+            <button class="tab-btn" onclick="mudarCategoria('vocabulário', this)">📖 Vocabulário</button>
+            <button class="tab-btn" onclick="mudarCategoria('perguntas', this)">❓ Perguntas</button>
+            <button class="tab-btn" onclick="mudarCategoria('descanso', this)">☕ Descanso</button>
+        </div>
+
+        <div class="options-container visible" id="letras-options">
+            <label><input type="checkbox" id="check-hiragana" checked onchange="loadCategory()"> Hiragana</label>
+            <label><input type="checkbox" id="check-katakana" checked onchange="loadCategory()"> Katakana</label>
+            <label><input type="checkbox" id="check-kanji" onchange="loadCategory()"> Kanji</label>
         </div>
 
         <div class="card" id="card">Clique para revelar</div>
@@ -153,22 +172,45 @@
     </div>
 
     <script>
+        const hiraganaData = [
+            ["あ", "a"], ["い", "i"], ["う", "u"], ["え", "e"], ["お", "o"],
+            ["か", "ka"], ["き", "ki"], ["く", "ku"], ["け", "ke"], ["こ", "ko"],
+            ["さ", "sa"], ["し", "shi"], ["す", "su"], ["せ", "se"], ["そ", "so"],
+            ["た", "ta"], ["ち", "chi"], ["つ", "tsu"], ["て", "te"], ["と", "to"],
+            ["な", "na"], ["に", "ni"], ["ぬ", "nu"], ["ね", "ne"], ["の", "no"],
+            ["は", "ha"], ["ひ", "hi"], ["ふ", "fu"], ["へ", "he"], ["ほ", "ho"],
+            ["ま", "ma"], ["み", "mi"], ["む", "mu"], ["め", "me"], ["も", "mo"],
+            ["や", "ya"], ["ゆ", "yu"], ["よ", "yo"],
+            ["ら", "ra"], ["り", "ri"], ["る", "ru"], ["れ", "re"], ["ろ", "ro"],
+            ["わ", "wa"], ["を", "wo"], ["ん", "n"]
+        ];
+
+        const katakanaData = [
+            ["ア", "a"], ["イ", "i"], ["ウ", "u"], ["エ", "e"], ["オ", "o"],
+            ["カ", "ka"], ["キ", "ki"], ["ク", "ku"], ["ケ", "ke"], ["コ", "ko"],
+            ["サ", "sa"], ["シ", "shi"], ["ス", "su"], ["セ", "se"], ["ソ", "so"],
+            ["タ", "ta"], ["チ", "chi"], ["ツ", "tsu"], ["テ", "te"], ["ト", "to"],
+            ["ナ", "na"], ["ニ", "ni"], ["ヌ", "nu"], ["ネ", "ne"], ["ノ", "no"],
+            ["ハ", "ha"], ["ヒ", "hi"], ["フ", "fu"], ["ヘ", "he"], ["ホ", "ho"],
+            ["マ", "ma"], ["ミ", "mi"], ["ム", "mu"], ["メ", "me"], ["モ", "mo"],
+            ["ヤ", "ya"], ["ユ", "yu"], ["ヨ", "yo"],
+            ["ラ", "ra"], ["リ", "ri"], ["ル", "ru"], ["レ", "re"], ["ロ", "ro"],
+            ["ワ", "wa"], ["ヲ", "wo"], ["ン", "n"]
+        ];
 
         // URLs
         const urls = {
+            kanji: "https://docs.google.com/spreadsheets/d/e/2PACX-1vTB0TRTvlkkQYdEXeYsQrExfJTBItnnxDSk_MKunRKOck_F6Zlr68SatfP_8s_AeQ6IHPsLJ6d3xxrG/pub?gid=866008096&single=true&output=tsv",
             vocabulário: "https://docs.google.com/spreadsheets/d/e/2PACX-1vTB0TRTvlkkQYdEXeYsQrExfJTBItnnxDSk_MKunRKOck_F6Zlr68SatfP_8s_AeQ6IHPsLJ6d3xxrG/pub?gid=0&single=true&output=tsv",
             perguntas: "https://docs.google.com/spreadsheets/d/e/2PACX-1vTB0TRTvlkkQYdEXeYsQrExfJTBItnnxDSk_MKunRKOck_F6Zlr68SatfP_8s_AeQ6IHPsLJ6d3xxrG/pub?gid=1456289432&single=true&output=tsv",
             descanso: "https://docs.google.com/spreadsheets/d/e/2PACX-1vTB0TRTvlkkQYdEXeYsQrExfJTBItnnxDSk_MKunRKOck_F6Zlr68SatfP_8s_AeQ6IHPsLJ6d3xxrG/pub?gid=578594546&single=true&output=tsv"
         };
 
-        // Dados carregados
         let data = [];
         let index = 0;
         let showingBack = 0;
+        let currentCategory = "letras";
 
-        let currentCategory = 'vocabulário';
-
-        // Função para embaralhar array
         function shuffleArray(array) {
             for (let i = array.length - 1; i > 0; i--) {
                 const j = Math.floor(Math.random() * (i + 1));
@@ -176,92 +218,101 @@
             }
         }
 
-        // Função para mudar categoria
-        async function mudarCategoria(novaCategoria, btn) {
-            if (currentCategory === novaCategoria) return;
+        async function mudarCategoria(cat, btn) {
+            // Permitir recarregar letras se mudar checkbox
+            if (currentCategory === cat && cat !== 'letras') return;
 
-            currentCategory = novaCategoria;
+            currentCategory = cat;
 
-            // Atualizar UI dos botões
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            if (btn) btn.classList.add('active');
+            document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+            if (btn) btn.classList.add("active");
+
+            // Mostrar/Esconder opções de letras
+            const options = document.getElementById("letras-options");
+            if (cat === "letras") {
+                options.classList.add("visible");
+            } else {
+                options.classList.remove("visible");
+            }
 
             await loadCategory();
         }
 
-        // Função para carregar TSV
         async function loadCategory() {
-            const categoria = currentCategory;
-            const url = urls[categoria];
+            if (currentCategory === "letras") {
+                data = [];
+                const hira = document.getElementById("check-hiragana").checked;
+                const kata = document.getElementById("check-katakana").checked;
+                const kanji = document.getElementById("check-kanji").checked;
 
-            const res = await fetch(url);
-            const text = await res.text();
+                if (hira) data = [...data, ...hiraganaData];
+                if (kata) data = [...data, ...katakanaData];
 
-            data = text.trim().split("\n").map(linha => linha.split("\t"));
+                if (kanji) {
+                    try {
+                        const res = await fetch(urls.kanji);
+                        const text = await res.text();
+                        const kanjiData = text.trim().split("\n").map(l => l.split("\t"));
+                        data = [...data, ...kanjiData];
+                    } catch (e) {
+                        console.error("Erro ao carregar Kanji", e);
+                    }
+                }
 
-            // Embaralhar se não for 'descanso'
-            if (categoria !== 'descanso') {
+                if (data.length === 0) {
+                    alert("Selecione pelo menos uma opção!");
+                    return;
+                }
+
                 shuffleArray(data);
+            } else {
+                const url = urls[currentCategory];
+                const res = await fetch(url);
+                const text = await res.text();
+                data = text.trim().split("\n").map(l => l.split("\t"));
+
+                if (currentCategory !== 'descanso') {
+                    shuffleArray(data);
+                }
             }
+
             index = 0;
             showingBack = 0;
-
             mostrarCard();
         }
 
-        // Mostrar card
-        function mostrarCard() {
-            if (!data.length) return;
-
-            const card = document.getElementById("card");
-            const categoria = currentCategory;
-            const [jp, romaji, resposta] = data[index];
-
-            if (categoria === "vocabulário") {
-                if (showingBack === 0) {
-                    card.innerHTML = `<b>${jp}</b>`;
-                }
-                else if (showingBack === 1) {
-                    card.innerHTML = `<b>${romaji}</b>`;
-                }
-                else if (showingBack === 2) {
-                    card.innerHTML = `<b>${resposta}</b>`;
-                }
-            }
-            else {
-                card.innerHTML = showingBack === 0
-                    ? `<b>${jp}</b><br><small>${romaji}</small>`
-                    : `<b>${resposta}</b>`;
-            }
-        }
-
-        // Clique para alternar
-        document.getElementById("card").addEventListener("click", () => {
-            const categoria = currentCategory;
-
-            if (categoria === "vocabulário") {
-                showingBack = (showingBack + 1) % 3;
-            } else {
-                showingBack = showingBack === 0 ? 1 : 0;
-            }
-            mostrarCard();
-        });
-
-        // Próximo
         function proximo() {
             index = (index + 1) % data.length;
             showingBack = 0;
             mostrarCard();
         }
 
-        // Anterior
+        function mostrarCard() {
+            const card = document.getElementById("card");
+            if (data.length === 0) {
+                card.innerText = "Nenhum dado carregado";
+                return;
+            }
+            if (showingBack) {
+                card.innerText = data[index][1];
+                card.style.fontSize = "1.5rem";
+            } else {
+                card.innerText = data[index][0];
+                card.style.fontSize = "3rem";
+            }
+        }
+
+        document.getElementById("card").onclick = () => {
+            showingBack = !showingBack;
+            mostrarCard();
+        };
+
         function anterior() {
             index = (index - 1 + data.length) % data.length;
             showingBack = 0;
             mostrarCard();
         }
 
-        // Criar estrelas
         function createStars() {
             for (let i = 0; i < 150; i++) {
                 let star = document.createElement("div");
@@ -274,7 +325,6 @@
         }
         createStars();
 
-        // Carregar a primeira categoria como padrão
         loadCategory();
 
     </script>
