@@ -222,15 +222,20 @@
 
         <div class="tab-container">
             <button class="tab-btn active" onclick="mudarCategoria('letras', this)">⭐ あ ア</button>
+            <button class="tab-btn" onclick="mudarCategoria('números', this)">🔢 Números</button>
             <button class="tab-btn" onclick="mudarCategoria('vocabulário', this)">📖 Vocabulário</button>
             <button class="tab-btn" onclick="mudarCategoria('perguntas', this)">🧠 Perguntas</button>
-            <button class="tab-btn" onclick="mudarCategoria('descanso', this)">🍵 Descanso</button>
         </div>
 
         <div class="options-container visible" id="letras-options">
             <label><input type="checkbox" id="check-hiragana" checked onchange="loadCategory()"> Hiragana</label>
             <label><input type="checkbox" id="check-katakana" checked onchange="loadCategory()"> Katakana</label>
             <label><input type="checkbox" id="check-kanji" onchange="loadCategory()"> Kanji</label>
+        </div>
+
+        <div class="options-container" id="números-options">
+            <label><input type="checkbox" id="check-numero" checked onchange="loadCategory()"> Número</label>
+            <div id="dynamic-filters" style="display: flex; gap: 20px;"></div>
         </div>
 
         <div class="card" id="card">Clique para revelar</div>
@@ -269,9 +274,9 @@
         // URLs
         const urls = {
             kanji: "https://docs.google.com/spreadsheets/d/e/2PACX-1vTB0TRTvlkkQYdEXeYsQrExfJTBItnnxDSk_MKunRKOck_F6Zlr68SatfP_8s_AeQ6IHPsLJ6d3xxrG/pub?gid=866008096&single=true&output=tsv",
+            números: "https://docs.google.com/spreadsheets/d/e/2PACX-1vTB0TRTvlkkQYdEXeYsQrExfJTBItnnxDSk_MKunRKOck_F6Zlr68SatfP_8s_AeQ6IHPsLJ6d3xxrG/pub?gid=578594546&single=true&output=tsv",
             vocabulário: "https://docs.google.com/spreadsheets/d/e/2PACX-1vTB0TRTvlkkQYdEXeYsQrExfJTBItnnxDSk_MKunRKOck_F6Zlr68SatfP_8s_AeQ6IHPsLJ6d3xxrG/pub?gid=0&single=true&output=tsv",
             perguntas: "https://docs.google.com/spreadsheets/d/e/2PACX-1vTB0TRTvlkkQYdEXeYsQrExfJTBItnnxDSk_MKunRKOck_F6Zlr68SatfP_8s_AeQ6IHPsLJ6d3xxrG/pub?gid=1456289432&single=true&output=tsv",
-            descanso: "https://docs.google.com/spreadsheets/d/e/2PACX-1vTB0TRTvlkkQYdEXeYsQrExfJTBItnnxDSk_MKunRKOck_F6Zlr68SatfP_8s_AeQ6IHPsLJ6d3xxrG/pub?gid=578594546&single=true&output=tsv"
         };
 
         let data = [];
@@ -287,20 +292,22 @@
         }
 
         async function mudarCategoria(cat, btn) {
-            // Permitir recarregar letras se mudar checkbox
-            if (currentCategory === cat && cat !== 'letras') return;
+            // Permitir recarregar categorias com filtros
+            if (currentCategory === cat && cat !== 'letras' && cat !== 'números') return;
 
             currentCategory = cat;
 
             document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
             if (btn) btn.classList.add("active");
 
-            // Mostrar/Esconder opções de letras
-            const options = document.getElementById("letras-options");
+            // Esconder todos os containers de opções primeiro
+            document.querySelectorAll(".options-container").forEach(opt => opt.classList.remove("visible"));
+
+            // Mostrar o container correto
             if (cat === "letras") {
-                options.classList.add("visible");
-            } else {
-                options.classList.remove("visible");
+                document.getElementById("letras-options").classList.add("visible");
+            } else if (cat === "números") {
+                document.getElementById("números-options").classList.add("visible");
             }
 
             await loadCategory();
@@ -333,15 +340,50 @@
                 }
 
                 shuffleArray(data);
+            } else if (currentCategory === "números") {
+                try {
+                    const res = await fetch(urls.números);
+                    const text = await res.text();
+                    const rawData = text.trim().split("\n")
+                        .map(l => l.split("\t"))
+                        .filter(row => row.length >= 5 && row[0].trim() !== "");
+
+                    gerarCheckboxes(rawData);
+
+                    const filtrosAtivos = {};
+                    // Pega o estado do checkbox fixo de Número (para o grupo 'basico')
+                    filtrosAtivos["basico"] = document.getElementById("check-numero").checked;
+
+                    // Pega o estado dos checkboxes dinâmicos
+                    document.querySelectorAll("#dynamic-filters input[type=checkbox]").forEach(cb => {
+                        filtrosAtivos[cb.dataset.grupo] = cb.checked;
+                    });
+
+                    data = rawData.filter(row => {
+                        const grupoRaw = row[4].trim().toLowerCase();
+                        const grupo = grupoRaw.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+                        return filtrosAtivos[grupo];
+                    }).map(row => {
+                        // Frente: Kanji (row[0]), Verso: Hiragana (row[1]) (Tradução (row[2]))
+                        return [row[0], `${row[1]} (${row[2]})`];
+                    });
+
+                    if (data.length === 0) {
+                        alert("Selecione pelo menos uma opção de filtros!");
+                        return;
+                    }
+
+                    shuffleArray(data);
+                } catch (e) {
+                    console.error("Erro ao carregar Números", e);
+                }
             } else {
                 const url = urls[currentCategory];
                 const res = await fetch(url);
                 const text = await res.text();
                 data = text.trim().split("\n").map(l => l.split("\t"));
 
-                if (currentCategory !== 'descanso') {
-                    shuffleArray(data);
-                }
+                shuffleArray(data);
             }
 
             index = 0;
@@ -369,6 +411,36 @@
                 card.style.fontSize = "3rem";
             }
         }
+
+        function gerarCheckboxes(rawData) {
+            const container = document.getElementById("dynamic-filters");
+
+            // Só gera se o container estiver vazio (para não perder o estado ao trocar de card)
+            if (container.innerHTML !== "") return;
+
+            const grupos = new Set();
+            rawData.forEach(row => {
+                if (row.length < 5) return;
+                let grupo = row[4].trim().toLowerCase()
+                    .normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+                // 'basico' é controlado pleo checkbox estático, não geramos aqui
+                if (grupo !== "basico") {
+                    grupos.add(grupo);
+                }
+            });
+
+            console.log("Grupos de números identificados na planilha:", Array.from(grupos));
+
+            grupos.forEach(grupo => {
+                const label = document.createElement("label");
+                label.innerHTML = `
+                    <input type="checkbox" data-grupo="${grupo}" onchange="loadCategory()">
+                    ${grupo.charAt(0).toUpperCase() + grupo.slice(1)}
+                `;
+                container.appendChild(label);
+            });
+        }
+
 
         document.getElementById("card").onclick = () => {
             showingBack = !showingBack;
