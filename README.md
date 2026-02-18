@@ -20,6 +20,7 @@ O nome **HoshiMichi (星道)** reflete a filosofia de que cada passo no aprendiz
 - **🏮 Desafio Kanji**: Integração dinâmica com Kanjis via planilha externa.
 - **📖 Vocabulário Expandido**: Flashcards categorizados para construção de repertório.
 - **🧠 Modo de Perguntas**: Treine sua compreensão com cards de perguntas e respostas.
+- **🔢 Números e Contadores**: Estudo de numerais e diversos contadores japoneses (coisas, idade, horas, etc).
 - **🔄 Algoritmo de Shuffle**: Distribuição aleatória dos cards para evitar a memorização por ordem.
 - **🖱️ Interação Intuitiva**: Clique para revelar o verso do card com animações fluidas e navegação rápida.
 
@@ -36,9 +37,9 @@ O nome **HoshiMichi (星道)** reflete a filosofia de que cada passo no aprendiz
 
 ## 🌌 Como usar
 
-1. Selecione uma **categoria** no topo (Letras, Vocabulário, etc.).
-2. No caso de 'Letras', utilize os **filtros** para escolher entre Hiragana, Katakana ou Kanji.
-3. Clique no **Card Central** para revelar a resposta (Furigana/Tradução).
+1. Selecione uma **categoria** no topo (Letras, Números, Vocabulário, etc.).
+2. Utilize os **filtros dinâmicos** para personalizar seu baralho (ex: selecionar apenas Hiragana em 'Letras' ou apenas 'Idade' em 'Números').
+3. Clique no **Card Central** para revelar a resposta (Furigana e Tradução).
 4. Use as setas `⬅️` e `➡️` para navegar pelo seu baralho personalizado.
 
 ---
