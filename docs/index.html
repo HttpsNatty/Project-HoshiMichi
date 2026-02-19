@@ -172,6 +172,55 @@
             transform: scale(1.05);
         }
 
+        #footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            font-size: 0.9rem;
+            color: #b0b8d4;
+            background: rgba(10, 15, 36, 0.8);
+            backdrop-filter: blur(10px);
+            border-top: 1px solid rgba(255, 143, 177, 0.3);
+            transition: 0.3s;
+            padding: 6px 0;
+            z-index: 1000;
+        }
+
+        #footer:hover {
+            background: rgba(10, 15, 36, 0.95);
+            border-top-color: rgba(255, 143, 177, 0.6);
+        }
+
+        #footer a {
+            color: #ff8fb1;
+            /* Rosa Nébula harmonioso */
+            text-decoration: none;
+            font-weight: 600;
+            transition: 0.3s;
+            position: relative;
+        }
+
+        #footer a:hover {
+            color: #ffb8d1;
+            text-shadow: 0 0 10px rgba(255, 143, 177, 0.5);
+        }
+
+        #footer a::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 1px;
+            bottom: -2px;
+            left: 0;
+            background-color: #ff8fb1;
+            transition: 0.3s;
+        }
+
+        #footer a:hover::after {
+            width: 100%;
+        }
+
         .main-layout {
             display: flex;
             justify-content: center;
@@ -351,7 +400,7 @@
             <button class="tab-btn active" onclick="mudarCategoria('letras', this)">⭐ あ ア</button>
             <button class="tab-btn" onclick="mudarCategoria('números', this)">🔢 Números</button>
             <button class="tab-btn" onclick="mudarCategoria('vocabulário', this)">📖 Vocabulário</button>
-            <button class="tab-btn" onclick="mudarCategoria('perguntas', this)">🧠 Perguntas</button>
+            <!-- <button class="tab-btn" onclick="mudarCategoria('perguntas', this)">🧠 Perguntas</button> -->
         </div>
 
         <div class="main-layout">
@@ -382,6 +431,10 @@
                 </div>
             </div>
         </div>
+    </div>
+    <div id="footer">
+        Desenvolvido por
+        <a href="https://github.com/HttpsNatty" target="_blank">Natty</a>
     </div>
 
     <script>
@@ -626,7 +679,6 @@
                 container.appendChild(label);
             });
         }
-
 
         document.getElementById("card").onclick = () => {
             showingBack++;
