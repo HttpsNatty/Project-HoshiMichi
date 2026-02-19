@@ -306,7 +306,8 @@
             color: white;
         }
 
-        .options-container input[type="checkbox"] {
+        .options-container input[type="checkbox"],
+        #check-memorize {
             accent-color: #4556a1;
             width: 18px;
             height: 18px;
@@ -424,7 +425,8 @@
             </div>
 
             <div class="card-section">
-                <div class="card" id="card">Clique para revelar</div>
+                <div class="card" id="card">Clique para começar</div>
+
                 <div class="controls-container">
                     <button onclick="anterior()">⬅️ Anterior</button>
                     <button onclick="proximo()">➡️ Próximo</button>
@@ -476,6 +478,29 @@
         let index = 0;
         let showingBack = 0;
         let currentCategory = "letras";
+        let isFirstLoad = true;
+
+        // Persistência de filtros fixos com localStorage
+        function salvarPreferencias() {
+            const IDs = ["check-hiragana", "check-katakana", "check-kanji", "check-numero"];
+            const prefs = {};
+            IDs.forEach(id => {
+                const cb = document.getElementById(id);
+                if (cb) prefs[id] = cb.checked;
+            });
+            localStorage.setItem("hoshimichi_filters_v3", JSON.stringify(prefs));
+        }
+
+        function carregarPreferencias() {
+            const saved = localStorage.getItem("hoshimichi_filters_v3");
+            if (!saved) return;
+            const prefs = JSON.parse(saved);
+
+            for (const id in prefs) {
+                const cb = document.getElementById(id);
+                if (cb) cb.checked = prefs[id];
+            }
+        }
 
         function shuffleArray(array) {
             for (let i = array.length - 1; i > 0; i--) {
@@ -506,9 +531,12 @@
             }
 
             await loadCategory();
+            salvarPreferencias();
         }
 
         async function loadCategory() {
+            isFirstLoad = false;
+            salvarPreferencias();
             if (currentCategory === "letras") {
                 data = [];
                 const hira = document.getElementById("check-hiragana").checked;
@@ -625,6 +653,10 @@
         }
 
         function proximo() {
+            if (isFirstLoad) {
+                loadCategory();
+                return;
+            }
             index = (index + 1) % data.length;
             showingBack = 0;
             mostrarCard();
@@ -632,6 +664,13 @@
 
         function mostrarCard() {
             const card = document.getElementById("card");
+
+            if (isFirstLoad) {
+                card.innerHTML = "Clique no card para ver a leitura";
+                card.style.fontSize = "1.5rem";
+                return;
+            }
+
             if (!data || data.length === 0) {
                 card.innerText = "Nenhum dado carregado";
                 return;
@@ -642,13 +681,12 @@
 
             card.innerText = currentCard[currentPhase];
 
-            // Ajuste de fonte dinâmico baseado na fase e conteúdo
             if (currentPhase === 0 && currentCard.length > 2) {
-                card.style.fontSize = "4rem"; // Kanji destaque
+                card.style.fontSize = "4rem";
             } else if (currentPhase === currentCard.length - 1) {
-                card.style.fontSize = "1.6rem"; // Tradução final
+                card.style.fontSize = "1.6rem";
             } else {
-                card.style.fontSize = "2.8rem"; // Hiragana/Katakana
+                card.style.fontSize = "2.8rem";
             }
         }
 
@@ -668,12 +706,13 @@
                 grupos.add(grupo);
             });
 
-            console.log(`Grupos identificados para ${containerId}:`, Array.from(grupos));
-
             grupos.forEach(grupo => {
                 const label = document.createElement("label");
+                // Vocabulário vem tudo marcado por padrão, Números vem desmarcado
+                const isChecked = containerId === "dynamic-filters-vocabulário";
+
                 label.innerHTML = `
-                    <input type="checkbox" data-grupo="${grupo}" checked onchange="loadCategory()">
+                    <input type="checkbox" data-grupo="${grupo}" ${isChecked ? 'checked' : ''} onchange="loadCategory()">
                     ${grupo.charAt(0).toUpperCase() + grupo.slice(1)}
                 `;
                 container.appendChild(label);
@@ -681,6 +720,10 @@
         }
 
         document.getElementById("card").onclick = () => {
+            if (isFirstLoad) {
+                loadCategory();
+                return;
+            }
             showingBack++;
             if (showingBack >= data[index].length) {
                 showingBack = 0;
@@ -689,6 +732,7 @@
         };
 
         function anterior() {
+            if (isFirstLoad) return;
             index = (index - 1 + data.length) % data.length;
             showingBack = 0;
             mostrarCard();
@@ -704,9 +748,10 @@
                 document.body.appendChild(star);
             }
         }
-        createStars();
 
-        loadCategory();
+        createStars();
+        carregarPreferencias();
+        mostrarCard();
 
     </script>
 </body>
