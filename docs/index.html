@@ -365,8 +365,12 @@
                 </div>
 
                 <div class="options-container" id="números-options">
-                    <label><input type="checkbox" id="check-numero" checked onchange="loadCategory()"> Números</label>
-                    <div id="dynamic-filters"></div>
+                    <label><input type="checkbox" id="check-numero" checked onchange="loadCategory()"> Número</label>
+                    <div id="dynamic-filters-números"></div>
+                </div>
+
+                <div class="options-container" id="vocabulário-options">
+                    <div id="dynamic-filters-vocabulário"></div>
                 </div>
             </div>
 
@@ -444,6 +448,8 @@
                 document.getElementById("letras-options").classList.add("visible");
             } else if (cat === "números") {
                 document.getElementById("números-options").classList.add("visible");
+            } else if (cat === "vocabulário") {
+                document.getElementById("vocabulário-options").classList.add("visible");
             }
 
             await loadCategory();
@@ -482,16 +488,14 @@
                     const text = await res.text();
                     const rawData = text.trim().split("\n")
                         .map(l => l.split("\t"))
-                        .filter(row => row.length >= 5 && row[0].trim() !== "");
+                        .filter(row => row.length >= 5 && (row[0].trim() !== "" || row[1].trim() !== ""));
 
-                    gerarCheckboxes(rawData);
+                    gerarCheckboxes(rawData, "dynamic-filters-números");
 
                     const filtrosAtivos = {};
-                    // Pega o estado do checkbox fixo de Número (para o grupo 'basico')
                     filtrosAtivos["basico"] = document.getElementById("check-numero").checked;
 
-                    // Pega o estado dos checkboxes dinâmicos
-                    document.querySelectorAll("#dynamic-filters input[type=checkbox]").forEach(cb => {
+                    document.querySelectorAll("#dynamic-filters-números input[type=checkbox]").forEach(cb => {
                         filtrosAtivos[cb.dataset.grupo] = cb.checked;
                     });
 
@@ -500,7 +504,6 @@
                         const grupo = grupoRaw.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
                         return filtrosAtivos[grupo];
                     }).map(row => {
-                        // Frente: Kanji (row[0]), Verso: Hiragana (row[1]) (Tradução (row[2]))
                         return [row[0], `${row[1]} (${row[2]})`];
                     });
 
@@ -512,6 +515,47 @@
                     shuffleArray(data);
                 } catch (e) {
                     console.error("Erro ao carregar Números", e);
+                }
+            } else if (currentCategory === "vocabulário") {
+                try {
+                    const res = await fetch(urls.vocabulário);
+                    const text = await res.text();
+                    const rawData = text.trim().split("\n")
+                        .map(l => l.split("\t"))
+                        .filter(row => row.length >= 4 && (row[0].trim() !== "" || row[1].trim() !== ""));
+
+                    console.log("Dados brutos de Vocabulário:", rawData);
+                    gerarCheckboxes(rawData, "dynamic-filters-vocabulário");
+
+                    const filtrosAtivos = {};
+                    document.querySelectorAll("#dynamic-filters-vocabulário input[type=checkbox]").forEach(cb => {
+                        filtrosAtivos[cb.dataset.grupo] = cb.checked;
+                    });
+
+                    data = rawData.filter(row => {
+                        const grupoRaw = row[3].trim().toLowerCase();
+                        const grupo = grupoRaw.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+                        return filtrosAtivos[grupo];
+                    }).map(row => {
+                        const kanji = row[0].trim();
+                        const hira = row[1].trim();
+                        const trad = row[2].trim();
+
+                        // Se não tem kanji (ou se o kanji é igual ao hiragana), faz só 2 passos
+                        if (!kanji || kanji === hira) return [hira, trad];
+
+                        // Caminho: Kanji -> Hiragana -> Tradução
+                        return [kanji, hira, trad];
+                    });
+
+                    if (data.length === 0) {
+                        alert("Selecione pelo menos uma opção de filtros!");
+                        return;
+                    }
+
+                    shuffleArray(data);
+                } catch (e) {
+                    console.error("Erro ao carregar Vocabulário", e);
                 }
             } else {
                 const url = urls[currentCategory];
@@ -535,42 +579,48 @@
 
         function mostrarCard() {
             const card = document.getElementById("card");
-            if (data.length === 0) {
+            if (!data || data.length === 0) {
                 card.innerText = "Nenhum dado carregado";
                 return;
             }
-            if (showingBack) {
-                card.innerText = data[index][1];
-                card.style.fontSize = "1.5rem";
+
+            const currentCard = data[index];
+            const currentPhase = Math.min(showingBack, currentCard.length - 1);
+
+            card.innerText = currentCard[currentPhase];
+
+            // Ajuste de fonte dinâmico baseado na fase e conteúdo
+            if (currentPhase === 0 && currentCard.length > 2) {
+                card.style.fontSize = "4rem"; // Kanji destaque
+            } else if (currentPhase === currentCard.length - 1) {
+                card.style.fontSize = "1.6rem"; // Tradução final
             } else {
-                card.innerText = data[index][0];
-                card.style.fontSize = "3rem";
+                card.style.fontSize = "2.8rem"; // Hiragana/Katakana
             }
         }
 
-        function gerarCheckboxes(rawData) {
-            const container = document.getElementById("dynamic-filters");
+        function gerarCheckboxes(rawData, containerId) {
+            const container = document.getElementById(containerId);
 
-            // Só gera se o container estiver vazio (para não perder o estado ao trocar de card)
             if (container.innerHTML !== "") return;
 
             const grupos = new Set();
             rawData.forEach(row => {
-                if (row.length < 5) return;
-                let grupo = row[4].trim().toLowerCase()
+                if (row.length < 4) return;
+                const colIndex = containerId === "dynamic-filters-vocabulário" ? 3 : 4;
+                let grupo = row[colIndex].trim().toLowerCase()
                     .normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-                // 'basico' é controlado pleo checkbox estático, não geramos aqui
-                if (grupo !== "basico") {
-                    grupos.add(grupo);
-                }
+                if (containerId === "dynamic-filters-números" && grupo === "basico") return;
+
+                grupos.add(grupo);
             });
 
-            console.log("Grupos de números identificados na planilha:", Array.from(grupos));
+            console.log(`Grupos identificados para ${containerId}:`, Array.from(grupos));
 
             grupos.forEach(grupo => {
                 const label = document.createElement("label");
                 label.innerHTML = `
-                    <input type="checkbox" data-grupo="${grupo}" onchange="loadCategory()">
+                    <input type="checkbox" data-grupo="${grupo}" checked onchange="loadCategory()">
                     ${grupo.charAt(0).toUpperCase() + grupo.slice(1)}
                 `;
                 container.appendChild(label);
@@ -579,7 +629,10 @@
 
 
         document.getElementById("card").onclick = () => {
-            showingBack = !showingBack;
+            showingBack++;
+            if (showingBack >= data[index].length) {
+                showingBack = 0;
+            }
             mostrarCard();
         };
 
