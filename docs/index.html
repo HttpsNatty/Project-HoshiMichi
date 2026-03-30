@@ -314,6 +314,155 @@
             cursor: pointer;
         }
 
+        /* Botão de Feedback */
+        #mail-btn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #ffb86c;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: 0.3s;
+            z-index: 1001;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        #mail-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: scale(1.1) rotate(10deg);
+        }
+
+        /* Modal de Feedback */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(5px);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .modal.visible {
+            display: flex;
+            opacity: 1;
+        }
+
+        .modal-content {
+            background: rgba(20, 26, 48, 0.98);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            padding: 40px;
+            border-radius: 24px;
+            width: 90%;
+            max-width: 440px;
+            text-align: center;
+            position: relative;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+            animation: modalSlide 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @keyframes modalSlide {
+            from {
+                transform: translateY(30px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .modal-content h3 {
+            margin-top: 0;
+            color: #ffb86c;
+            justify-content: center;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 1.5rem;
+        }
+
+        .modal-content input,
+        .modal-content textarea {
+            width: 100%;
+            box-sizing: border-box;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 14px;
+            color: white;
+            margin-bottom: 15px;
+            font-family: inherit;
+            font-size: 1rem;
+            transition: 0.3s;
+        }
+
+        .modal-content input:focus,
+        .modal-content textarea:focus {
+            outline: none;
+            border-color: #4556a1;
+            background: rgba(255, 255, 255, 0.07);
+        }
+
+        .modal-content textarea {
+            height: 100px;
+            resize: none;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 10px;
+        }
+
+        .btn-cancel {
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #b0b8d4;
+            padding: 10px 20px;
+            border-radius: 50px;
+            cursor: pointer;
+        }
+
+        .btn-send {
+            background: #4556a1;
+            border: none;
+            color: white;
+            padding: 10px 25px;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: 0.3s;
+        }
+
+        .btn-send:hover {
+            background: #5669c2;
+            transform: translateY(-2px);
+        }
+
+        .btn-send:disabled {
+            background: #333;
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+
         @media (max-width: 800px) {
             .main-layout {
                 flex-direction: column;
@@ -342,17 +491,8 @@
                 flex-wrap: wrap;
                 justify-content: center;
             }
-
-            h1 {
-                font-size: 1.8rem;
-            }
-
-            .card {
-                width: 300px;
-                padding: 40px;
-                min-height: 150px;
-            }
         }
+
 
         @media (max-width: 600px) {
             h1 {
@@ -382,6 +522,23 @@
 
     <div id="starfield"></div>
 
+    <!-- <button id="mail-btn" onclick="toggleModal(true)" title="Enviar Sugestão">📬</button> -->
+
+    <div class="modal" id="feedback-modal">
+        <div class="modal-content">
+            <h3>📬 Enviar Sugestão</h3>
+            <p style="color: #b0b8d4; font-size: 0.9rem; margin-bottom: 20px;">
+                Dúvidas ou sugestões? Envie uma mensagem diretamente para a Natty! 🌌
+            </p>
+            <input type="text" id="fb-nome" placeholder="Seu nome" required>
+            <textarea id="fb-mensagem" placeholder="Sua mensagem..." required></textarea>
+            <div class="modal-buttons">
+                <button class="btn-cancel" onclick="toggleModal(false)">Cancelar</button>
+                <button class="btn-send" id="btn-submit-fb" onclick="enviarFeedback()">Enviar</button>
+            </div>
+        </div>
+    </div>
+
     <div class="container" style="position: relative; z-index: 100; padding: 15px 20px;">
         <div class="logo-container">
             <svg class="logo-svg" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -401,7 +558,9 @@
             <button class="tab-btn active" onclick="mudarCategoria('letras', this)">⭐ あ ア</button>
             <button class="tab-btn" onclick="mudarCategoria('números', this)">🔢 Números</button>
             <button class="tab-btn" onclick="mudarCategoria('vocabulário', this)">📖 Vocabulário</button>
-            <!-- <button class="tab-btn" onclick="mudarCategoria('perguntas', this)">🧠 Perguntas</button> -->
+            <button class="tab-btn" onclick="mudarCategoria('perguntas', this)">🧠 Perguntas da Prova</button>
+            <button class="tab-btn" onclick="mudarCategoria('Verbos', this)">🏃 Verbos</button>
+            <button class="tab-btn" onclick="mudarCategoria('Adjetivos', this)" disabled title="Categoria em construção">🔨 Adjetivos</button>
         </div>
 
         <div class="main-layout">
@@ -421,6 +580,14 @@
 
                 <div class="options-container" id="vocabulário-options">
                     <div id="dynamic-filters-vocabulário"></div>
+                </div>
+
+                <div class="options-container" id="verbos-options">
+                    <label><input type="checkbox" id="check-verbo-negativa" checked onchange="loadCategory()"> Negativa</label>
+                    <label><input type="checkbox" id="check-verbo-dicionario" checked onchange="loadCategory()"> Dicionário</label>
+                    <label><input type="checkbox" id="check-verbo-te" checked onchange="loadCategory()"> Forma TE</label>
+                    <label><input type="checkbox" id="check-verbo-passado" checked onchange="loadCategory()"> Passado</label>
+                    <label><input type="checkbox" id="check-verbo-passadonegativo" checked onchange="loadCategory()"> Pass. Negativo</label>
                 </div>
             </div>
 
@@ -471,7 +638,8 @@
             kanji: "https://docs.google.com/spreadsheets/d/e/2PACX-1vTB0TRTvlkkQYdEXeYsQrExfJTBItnnxDSk_MKunRKOck_F6Zlr68SatfP_8s_AeQ6IHPsLJ6d3xxrG/pub?gid=866008096&single=true&output=tsv",
             números: "https://docs.google.com/spreadsheets/d/e/2PACX-1vTB0TRTvlkkQYdEXeYsQrExfJTBItnnxDSk_MKunRKOck_F6Zlr68SatfP_8s_AeQ6IHPsLJ6d3xxrG/pub?gid=578594546&single=true&output=tsv",
             vocabulário: "https://docs.google.com/spreadsheets/d/e/2PACX-1vTB0TRTvlkkQYdEXeYsQrExfJTBItnnxDSk_MKunRKOck_F6Zlr68SatfP_8s_AeQ6IHPsLJ6d3xxrG/pub?gid=0&single=true&output=tsv",
-            perguntas: "https://docs.google.com/spreadsheets/d/e/2PACX-1vTB0TRTvlkkQYdEXeYsQrExfJTBItnnxDSk_MKunRKOck_F6Zlr68SatfP_8s_AeQ6IHPsLJ6d3xxrG/pub?gid=1456289432&single=true&output=tsv",
+            perguntas: "https://docs.google.com/spreadsheets/d/e/2PACX-1vTB0TRTvlkkQYdEXeYsQrExfJTBItnnxDSk_MKunRKOck_F6Zlr68SatfP_8s_AeQ6IHPsLJ6d3xxrG/pub?gid=1797354773&single=true&output=tsv",
+            verbos: "https://docs.google.com/spreadsheets/d/e/2PACX-1vTB0TRTvlkkQYdEXeYsQrExfJTBItnnxDSk_MKunRKOck_F6Zlr68SatfP_8s_AeQ6IHPsLJ6d3xxrG/pub?gid=1539830050&single=true&output=tsv",
         };
 
         let data = [];
@@ -482,7 +650,10 @@
 
         // Persistência de filtros fixos com localStorage
         function salvarPreferencias() {
-            const IDs = ["check-hiragana", "check-katakana", "check-kanji", "check-numero"];
+            const IDs = [
+                "check-hiragana", "check-katakana", "check-kanji", "check-numero",
+                "check-verbo-negativa", "check-verbo-dicionario", "check-verbo-te", "check-verbo-passado", "check-verbo-passadonegativo"
+            ];
             const prefs = {};
             IDs.forEach(id => {
                 const cb = document.getElementById(id);
@@ -528,6 +699,8 @@
                 document.getElementById("números-options").classList.add("visible");
             } else if (cat === "vocabulário") {
                 document.getElementById("vocabulário-options").classList.add("visible");
+            } else if (cat === "Verbos") {
+                document.getElementById("verbos-options").classList.add("visible");
             }
 
             await loadCategory();
@@ -638,13 +811,83 @@
                 } catch (e) {
                     console.error("Erro ao carregar Vocabulário", e);
                 }
-            } else {
-                const url = urls[currentCategory];
-                const res = await fetch(url);
-                const text = await res.text();
-                data = text.trim().split("\n").map(l => l.split("\t"));
+            } else if (currentCategory === "Verbos") {
+                try {
+                    const url = urls.verbos;
+                    if (!url) {
+                        alert("URL dos Verbos não configurada. Adicione o TSV no código!");
+                        return;
+                    }
+                    const res = await fetch(url);
+                    const text = await res.text();
+                    
+                    const rawData = text.trim().split("\n")
+                        .map(l => l.split("\t"))
+                        .filter(row => row.length >= 2 && row[0].trim() !== "");
 
-                shuffleArray(data);
+                    const negOn = document.getElementById("check-verbo-negativa").checked;
+                    const dicOn = document.getElementById("check-verbo-dicionario").checked;
+                    const teOn = document.getElementById("check-verbo-te").checked;
+                    const passOn = document.getElementById("check-verbo-passado").checked;
+                    const passNegOn = document.getElementById("check-verbo-passadonegativo").checked;
+
+                    data = [];
+                    // Pular cabeçalho, se existir
+                    let startIndex = 0;
+                    if (rawData.length > 0 && rawData[0][0].toLowerCase().includes("forma")) {
+                        startIndex = 1;
+                    }
+
+                    for (let i = startIndex; i < rawData.length; i++) {
+                        const row = rawData[i];
+                        const base = row[0]; // Frente da carta (Forma Masu)
+
+                        if (!base || base.trim() === "") continue;
+
+                        if (negOn && row.length > 1 && row[1].trim()) data.push([base + "\n(Negativa)", row[1]]);
+                        if (dicOn && row.length > 2 && row[2].trim()) data.push([base + "\n(Dicionário)", row[2]]);
+                        if (teOn && row.length > 3 && row[3].trim()) data.push([base + "\n(Forma TE)", row[3]]);
+                        if (passOn && row.length > 4 && row[4].trim()) data.push([base + "\n(Passado)", row[4]]);
+                        if (passNegOn && row.length > 5 && row[5].trim()) data.push([base + "\n(Pass. Negativo)", row[5]]);
+                    }
+
+                    if (data.length === 0) {
+                        alert("Nenhuma forma selecionada ou dados vazios!");
+                        return;
+                    }
+
+                    shuffleArray(data);
+                } catch (e) {
+                    console.error("Erro ao carregar Verbos", e);
+                    alert("Erro ao carregar Verbos. Verifique a URL.");
+                    return;
+                }
+            } else {
+                try {
+                    const url = urls[currentCategory];
+                    const res = await fetch(url);
+                    const text = await res.text();
+                    
+                    data = text.trim().split("\n")
+                        .map(l => l.split("\t"))
+                        .filter(row => row.length >= 2 && row[0].trim() !== "");
+
+                    if (data.length === 0) {
+                        alert("Nenhuma pergunta encontrada!");
+                        return;
+                    }
+
+                    // Pular a primeira linha se for cabeçalho
+                    if (data.length > 0 && data[0][0].toLowerCase().includes("pergunta")) {
+                        data.shift();
+                    }
+
+                    shuffleArray(data);
+                } catch (e) {
+                    console.error("Erro ao carregar " + currentCategory, e);
+                    alert("Erro ao carregar " + currentCategory);
+                    return;
+                }
             }
 
             index = 0;
@@ -681,7 +924,9 @@
 
             card.innerText = currentCard[currentPhase];
 
-            if (currentPhase === 0 && currentCard.length > 2) {
+            if (currentCategory === "perguntas") {
+                card.style.fontSize = currentCard[currentPhase].length > 50 ? "1.2rem" : "1.6rem";
+            } else if (currentPhase === 0 && currentCard.length > 2) {
                 card.style.fontSize = "4rem";
             } else if (currentPhase === currentCard.length - 1) {
                 card.style.fontSize = "1.6rem";
@@ -752,6 +997,65 @@
         createStars();
         carregarPreferencias();
         mostrarCard();
+
+        // Funções para o Modal de Feedback
+        function toggleModal(show) {
+            const modal = document.getElementById('feedback-modal');
+            if (show) {
+                modal.classList.add('visible');
+            } else {
+                modal.classList.remove('visible');
+                // Limpa campos ao fechar sem enviar
+                document.getElementById('fb-nome').value = '';
+                document.getElementById('fb-mensagem').value = '';
+            }
+        }
+
+        async function enviarFeedback() {
+            const nome = document.getElementById('fb-nome').value.trim();
+            const mensagem = document.getElementById('fb-mensagem').value.trim();
+            const btn = document.getElementById('btn-submit-fb');
+
+            if (!nome || !mensagem) {
+                alert("Por favor, preencha todos os campos antes de enviar. ✨");
+                return;
+            }
+
+            btn.disabled = true;
+            btn.innerText = "Enviando...";
+
+            // URL do seu Google Apps Script
+            const SCRIPT_URL = "URL_DO_SEU_WEB_APP_AQUI";
+
+            if (SCRIPT_URL === "URL_DO_SEU_WEB_APP_AQUI") {
+                alert("Erro: Você precisa configurar a URL do Apps Script primeiro! ✨");
+                btn.disabled = false;
+                btn.innerText = "Enviar";
+                return;
+            }
+
+            try {
+                const params = new URLSearchParams();
+                params.append("nome", nome);
+                params.append("mensagem", mensagem);
+                params.append("timestamp", new Date().toLocaleString("pt-BR"));
+
+                await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    body: params,
+                    mode: 'no-cors' // Essencial para GAS
+                });
+
+                alert("Obrigado! Sua mensagem foi enviada com sucesso. ✨🌌");
+                toggleModal(false);
+            } catch (error) {
+                console.error("Erro ao enviar feedback:", error);
+                alert("Houve um pequeno problema ao brilhar sua mensagem. Tente novamente mais tarde! 🌠");
+            } finally {
+                btn.disabled = false;
+                btn.innerText = "Enviar";
+            }
+        }
 
     </script>
 </body>
